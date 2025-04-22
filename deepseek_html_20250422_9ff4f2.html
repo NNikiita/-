@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои заметки</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5dc;
+            color: #4B3621;
+        }
+        h1 {
+            text-align: center;
+            color: #800020;
+        }
+        .note-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .note {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        button {
+            background-color: #800020;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #5C0010;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Мои заметки</h1>
+    <div class="note-container" id="noteContainer">
+        <textarea id="newNote" placeholder="Начните писать заметку здесь..."></textarea>
+    </div>
+    <div class="controls">
+        <button id="addNote">Добавить заметку</button>
+        <button id="saveNotes">Сохранить все заметки</button>
+        <button id="clearNotes">Очистить все</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const noteContainer = document.getElementById('noteContainer');
+            const newNoteTextarea = document.getElementById('newNote');
+            const addNoteBtn = document.getElementById('addNote');
+            const saveNotesBtn = document.getElementById('saveNotes');
+            const clearNotesBtn = document.getElementById('clearNotes');
+
+            // Загрузка заметок при открытии страницы
+            loadNotes();
+
+            // Добавление новой заметки
+            addNoteBtn.addEventListener('click', function() {
+                const noteText = newNoteTextarea.value.trim();
+                if (noteText) {
+                    addNoteToDOM(noteText);
+                    newNoteTextarea.value = '';
+                    saveNotesToStorage();
+                }
+            });
+
+            // Сохранение всех заметок
+            saveNotesBtn.addEventListener('click', saveNotesToStorage);
+
+            // Очистка всех заметок
+            clearNotesBtn.addEventListener('click', function() {
+                if (confirm('Вы уверены, что хотите удалить все заметки?')) {
+                    localStorage.removeItem('savedNotes');
+                    noteContainer.innerHTML = '<textarea id="newNote" placeholder="Начните писать заметку здесь..."></textarea>';
+                }
+            });
+
+            // Функция добавления заметки в DOM
+            function addNoteToDOM(text) {
+                const noteDiv = document.createElement('div');
+                noteDiv.className = 'note';
+                noteDiv.innerHTML = `
+                    <p>${text.replace(/\n/g, '<br>')}</p>
+                    <button class="delete-btn">Удалить</button>
+                `;
+                noteDiv.querySelector('.delete-btn').addEventListener('click', function() {
+                    noteDiv.remove();
+                    saveNotesToStorage();
+                });
+                noteContainer.appendChild(noteDiv);
+            }
+
+            // Функция сохранения заметок в LocalStorage
+            function saveNotesToStorage() {
+                const notes = [];
+                document.querySelectorAll('.note p').forEach(note => {
+                    notes.push(note.innerHTML.replace(/<br>/g, '\n'));
+                });
+                localStorage.setItem('savedNotes', JSON.stringify(notes));
+                alert('Заметки сохранены!');
+            }
+
+            // Функция загрузки заметок из LocalStorage
+            function loadNotes() {
+                const savedNotes = localStorage.getItem('savedNotes');
+                if (savedNotes) {
+                    const notes = JSON.parse(savedNotes);
+                    notes.forEach(note => {
+                        addNoteToDOM(note);
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+</html>
